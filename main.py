@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
 
 data = {
     "area": [30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
@@ -54,10 +55,11 @@ def train(x, y, w, b, learning_rate, iterations):
 
 w = 100
 b = 0
+iterations = 10000
 learning_rate = 0.0001
 
 
-w, b, history = train(df["area"], df["price"], w, b, learning_rate, 100)
+w, b, history = train(df["area"], df["price"], w, b, learning_rate, iterations)
 
 predictions = predict(df["area"], w, b)
 
@@ -81,3 +83,16 @@ plt.title("Линейная регрессия")
 plt.legend()
 plt.grid()
 plt.show()
+
+model = LinearRegression()
+X = df[["area"]]
+y = df["price"]
+
+model.fit(X, y)
+
+print(f"w = {model.coef_[0]}")
+print(f"b = {model.intercept_}")
+
+sklearn_predictions = model.predict(X)
+
+print(f"MSE = {mse(y, sklearn_predictions)}")
