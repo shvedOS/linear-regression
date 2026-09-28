@@ -38,8 +38,10 @@ def gradients(x, y, w, b):
 
 def train(x, y, w, b, learning_rate, iterations):
     mse_history = []
+
     for i in range(iterations):
         dw, db = gradients(x, y, w, b)
+
         w -= learning_rate * dw
         b -= learning_rate * db
 
@@ -47,12 +49,35 @@ def train(x, y, w, b, learning_rate, iterations):
         loss = mse(y, predictions)
 
         mse_history.append((i, w, b, loss))
+
     return w, b, mse_history
 
-w = 0
+w = 100
 b = 0
 learning_rate = 0.0001
 
 
-train_result = train(df["area"], df["price"], w, b, learning_rate, 100)
-print(*train_result[2], sep='\n')
+w, b, history = train(df["area"], df["price"], w, b, learning_rate, 100)
+
+predictions = predict(df["area"], w, b)
+
+iterations = [row[0] for row in history]
+losses = [row[3] for row in history]
+
+
+plt.plot(iterations, losses)
+plt.xlabel("Итерация")
+plt.ylabel("MSE")
+plt.title("Изменение MSE во время обучения")
+plt.grid()
+plt.show()
+
+plt.scatter(df["area"], df["price"], label="Данные", color="orange")
+plt.plot(df["area"], predictions, label="Линейная регрессия")
+
+plt.xlabel("Площадь")
+plt.ylabel("Цена")
+plt.title("Линейная регрессия")
+plt.legend()
+plt.grid()
+plt.show()
