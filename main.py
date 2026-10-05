@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
 
 data = {
     "area": [30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
@@ -22,11 +23,13 @@ df = pd.DataFrame(data)
 def predict(x, w, b):
     return w * x + b
 
+
 def mse(y_true, y_pred):
     y_t = np.array(y_true)
     y_p = np.array(y_pred)
 
     return np.mean((y_t - y_p) ** 2)
+
 
 def gradients(x, y, w, b):
     predictions = predict(x, w, b)
@@ -53,24 +56,64 @@ def train(x, y, w, b, learning_rate, iterations):
 
     return w, b, mse_history
 
-w = 100
+
+w = 0
 b = 0
-iterations = 10000
+iterations = 100
 learning_rate = 0.0001
 
+# Добавим scaler для сравнения
+scaler = StandardScaler()
 
-w, b, history = train(df["area"], df["price"], w, b, learning_rate, iterations)
+X_scaled = scaler.fit_transform(df[["area"]]).flatten()
 
-predictions = predict(df["area"], w, b)
+print("\nДо scaling:")
+print(df["area"].values)
 
-iterations = [row[0] for row in history]
-losses = [row[3] for row in history]
+print("\nПосле scaling:")
+print(X_scaled)
+
+# Проверим без scaling
+w_original, b_original, history_original = train(df["area"], df["price"], w, b, learning_rate, iterations)
+
+print("\nБез scaling:")
+print(f"w = {w_original}")
+print(f"b = {b_original}")
+print(f"MSE = {history_original[-1][3]}")
+
+# Проверим со scaling
+w_scaled, b_scaled, history_scaled = train(X_scaled, df["price"], w, b, 0.1, iterations)
+
+print("\nСо scaling:")
+print(f"w = {w_scaled}")
+print(f"b = {b_scaled}")
+print(f"MSE = {history_scaled[-1][3]}")
 
 
-plt.plot(iterations, losses)
+iterations_original = [row[0] for row in history_original]
+losses_original = [row[3] for row in history_original]
+
+iterations_scaled = [row[0] for row in history_scaled]
+losses_scaled = [row[3] for row in history_scaled]
+
+
+predictions = predict(df["area"], w_original, b_original)
+
+plt.plot(
+    iterations_original,
+    losses_original,
+    label="Без scaling"
+)
+
+plt.plot(
+    iterations_scaled,
+    losses_scaled,
+    label="Со scaling"
+)
 plt.xlabel("Итерация")
 plt.ylabel("MSE")
 plt.title("Изменение MSE во время обучения")
+plt.legend()
 plt.grid()
 plt.show()
 
@@ -90,9 +133,9 @@ y = df["price"]
 
 model.fit(X, y)
 
-print(f"w = {model.coef_[0]}")
-print(f"b = {model.intercept_}")
+print(f"\nw (sklearn) = {model.coef_[0]}")
+print(f"b (sklearn) = {model.intercept_}")
 
 sklearn_predictions = model.predict(X)
 
-print(f"MSE = {mse(y, sklearn_predictions)}")
+print(f"MSE (sklearn) = {mse(y, sklearn_predictions)}")
